@@ -6,12 +6,16 @@
 // credential, matched exactly by get_order_status_by_tracking_token. If
 // arriving via the confirmation link, order_id and token are pre-filled
 // from the URL; otherwise the customer can type them in manually.
+//
+// useSearchParams() requires a Suspense boundary for Next.js to be able
+// to statically build this page -- TrackOrderForm holds all the real
+// logic, and the default export below just wraps it.
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
 
-export default function TrackOrderPage() {
+function TrackOrderForm() {
   const searchParams = useSearchParams();
   const [orderId, setOrderId] = useState('');
   const [token, setToken] = useState('');
@@ -84,5 +88,13 @@ export default function TrackOrderPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={<p className="hint-text">Loading…</p>}>
+      <TrackOrderForm />
+    </Suspense>
   );
 }
