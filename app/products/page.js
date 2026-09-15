@@ -2,10 +2,11 @@
 
 // app/products/page.js
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabaseClient';
 import { RETAILER_ID } from '../../lib/constants';
-import ProductImage from '../ProductImage';
+import ProductCard from '../ProductCard';
+import { gridContainer } from '../../lib/motion';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -35,23 +36,16 @@ export default function ProductsPage() {
       ) : products.length === 0 ? (
         <p className="hint-text">No products available right now. Check back soon.</p>
       ) : (
-        <div className="product-grid">
+        <motion.div
+          className="product-grid"
+          initial="hidden"
+          animate="show"
+          variants={gridContainer}
+        >
           {products.map((link) => (
-            <Link href={`/products/${link.id}`} key={link.id} className="product-card">
-              <ProductImage src={link.products?.image_url} alt={link.products?.name} />
-              <h3>
-                {link.products?.brand ? `${link.products.brand} ` : ''}
-                {link.products?.name || 'Product'}
-              </h3>
-              <p className="price">
-                {link.currency || 'ZMW'} {link.displayed_price}
-              </p>
-              {link.stock_quantity != null && link.stock_quantity <= 0 && (
-                <p className="error-text">Out of stock</p>
-              )}
-            </Link>
+            <ProductCard link={link} key={link.id} />
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
