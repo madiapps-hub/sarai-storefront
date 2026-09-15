@@ -2,10 +2,12 @@
 
 // app/page.js
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import { RETAILER_ID, RETAILER_NAME } from '../lib/constants';
-import ProductImage from './ProductImage';
+import ProductCard from './ProductCard';
+import { fadeUp, gridContainer } from '../lib/motion';
 
 export default function HomePage() {
   const [featured, setFeatured] = useState([]);
@@ -29,13 +31,18 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="hero">
+      <motion.section
+        className="hero"
+        initial="hidden"
+        animate="show"
+        variants={fadeUp}
+      >
         <h1>Skincare, considered.</h1>
         <p>Quality products from {RETAILER_NAME}, delivered to your door.</p>
         <Link href="/products" className="btn" style={{ marginTop: 24, display: 'inline-flex' }}>
           Shop the collection
         </Link>
-      </section>
+      </motion.section>
 
       <section>
         <h2>Featured</h2>
@@ -44,20 +51,16 @@ export default function HomePage() {
         ) : featured.length === 0 ? (
           <p className="hint-text">No products available yet.</p>
         ) : (
-          <div className="product-grid">
+          <motion.div
+            className="product-grid"
+            initial="hidden"
+            animate="show"
+            variants={gridContainer}
+          >
             {featured.map((link) => (
-              <Link href={`/products/${link.id}`} key={link.id} className="product-card">
-                <ProductImage src={link.products?.image_url} alt={link.products?.name} />
-                <h3>
-                  {link.products?.brand ? `${link.products.brand} ` : ''}
-                  {link.products?.name || 'Product'}
-                </h3>
-                <p className="price">
-                  {link.currency || 'ZMW'} {link.displayed_price}
-                </p>
-              </Link>
+              <ProductCard link={link} key={link.id} />
             ))}
-          </div>
+          </motion.div>
         )}
       </section>
     </div>
