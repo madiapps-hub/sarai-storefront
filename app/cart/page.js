@@ -3,6 +3,7 @@
 // app/cart/page.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getActiveCart, getCartItems, updateCartItemQuantity, removeCartItem } from '../../lib/cart';
 import ProductImage from '../ProductImage';
 
@@ -36,8 +37,11 @@ export default function CartPage() {
   }
 
   async function handleRemove(itemId) {
+    // Optimistically collapse the row immediately, then sync with the
+    // server -- feels instant rather than waiting on a round trip before
+    // any visual feedback happens.
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
     await removeCartItem(itemId);
-    load();
   }
 
   const subtotal = items.reduce((sum, item) => {
@@ -59,42 +63,52 @@ export default function CartPage() {
   return (
     <div>
       <h1>Your Cart</h1>
-      {items.map((item) => {
-        const link = item.product_retailer_links;
-        const product = link?.products;
-        const price = link?.displayed_price ?? item.price_at_add ?? 0;
-        return (
-          <div className="cart-row" key={item.id}>
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-              <div style={{ width: 64, flexShrink: 0 }}>
-                <ProductImage src={product?.image_url} alt={product?.name} height={64} />
-              </div>
-              <div>
-                <strong>
-                  {product?.brand ? `${product.brand} ` : ''}
-                  {product?.name || 'Product'}
-                </strong>
-                <div className="hint-text">
-                  {link?.currency || 'ZMW'} {price} each
+      <AnimatePresence initial={false}>
+        {items.map((item) => {
+          const link = item.product_retailer_links;
+          const product = link?.products;
+          const price = link?.displayed_price ?? item.price_at_add ?? 0;
+          return (
+            <motion.div
+              className="cart-row"
+              key={item.id}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                <div style={{ width: 64, flexShrink: 0 }}>
+                  <ProductImage src={product?.image_url} alt={product?.name} height={64} />
                 </div>
-                <div style={{ marginTop: 6, display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <button className="btn btn-secondary" onClick={() => handleQtyChange(item.id, item.quantity - 1)}>
-                    −
-                  </button>
-                  <span>{item.quantity}</span>
-                  <button className="btn btn-secondary" onClick={() => handleQtyChange(item.id, item.quantity + 1)}>
-                    +
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => handleRemove(item.id)}>
-                    Remove
-                  </button>
+                <div>
+                  <strong>
+                    {product?.brand ? `${product.brand} ` : ''}
+                    {product?.name || 'Product'}
+                  </strong>
+                  <div className="hint-text">
+                    {link?.currency || 'ZMW'} {price} each
+                  </div>
+                  <div style={{ marginTop: 6, display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <button className="btn btn-secondary" onClick={() => handleQtyChange(item.id, item.quantity - 1)}>
+                      −
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button className="btn btn-secondary" onClick={() => handleQtyChange(item.id, item.quantity + 1)}>
+                      +
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => handleRemove(item.id)}>
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="price">{(price * item.quantity).toFixed(2)}</div>
-          </div>
-        );
-      })}
+              <div className="price">{(price * item.quantity).toFixed(2)}</div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
 
       <div style={{ marginTop: 20, textAlign: 'right' }}>
         <p>Subtotal: <strong>{subtotal.toFixed(2)}</strong></p>
