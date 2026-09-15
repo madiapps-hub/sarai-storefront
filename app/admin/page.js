@@ -12,7 +12,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
-
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
@@ -48,6 +47,10 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+        <strong>Orders</strong>
+        <Link href="/admin/products">Products</Link>
+      </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Orders</h1>
         <button className="btn btn-secondary" onClick={handleSignOut}>Sign Out</button>
