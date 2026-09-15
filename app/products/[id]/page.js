@@ -8,9 +8,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabaseClient';
 import { addToCart } from '../../../lib/cart';
 import ProductImage from '../../ProductImage';
+import { fadeUp } from '../../../lib/motion';
 
 export default function ProductDetailPage({ params }) {
   const { id } = params;
@@ -58,7 +60,12 @@ export default function ProductDetailPage({ params }) {
   const outOfStock = link.stock_quantity != null && link.stock_quantity <= 0;
 
   return (
-    <div style={{ maxWidth: 480 }}>
+    <motion.div
+      style={{ maxWidth: 480 }}
+      initial="hidden"
+      animate="show"
+      variants={fadeUp}
+    >
       <ProductImage src={link.products?.image_url} alt={link.products?.name} height={280} />
       <h1 style={{ marginTop: 16 }}>
         {link.products?.brand ? `${link.products.brand} ` : ''}
@@ -71,12 +78,17 @@ export default function ProductDetailPage({ params }) {
       {outOfStock ? (
         <p className="error-text">Out of stock</p>
       ) : (
-        <button className="btn" onClick={handleAddToCart} disabled={adding}>
+        <motion.button
+          className="btn"
+          onClick={handleAddToCart}
+          disabled={adding}
+          whileTap={{ scale: 0.96 }}
+        >
           {adding ? 'Adding…' : 'Add to Cart'}
-        </button>
+        </motion.button>
       )}
 
       {error && <p className="error-text" style={{ marginTop: 10 }}>{error}</p>}
-    </div>
+    </motion.div>
   );
 }
